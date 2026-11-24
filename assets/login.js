@@ -7,7 +7,7 @@ NB.requireLogin = async function (rol, root, titulo) {
     const demo = NB.data.demo;
     const usuarios = demo ? (await NB.data.usuariosDemo()).filter(x => x.rol === rol) : [];
     root.innerHTML = `<div class="login"><div class="box">
-      <div class="logo">NUTRI<b>BITES</b></div>
+      <img class="logo-img login-logo" src="../assets/logo-nutribites.png" alt="Nutribites">
       <p class="sub">${NB.esc(titulo)}</p>
       <span class="ribbon">${rol === 'admin' ? 'Acceso del dueño' : 'Acceso del vendedor'}</span>
       ${NB.data.faltaSchema ? `<div class="demo-tag">Falta un paso en Supabase: agrega el schema <b>${NB.esc((window.NB_CONFIG||{}).SCHEMA || 'nutribites')}</b> en Settings → API → Exposed schemas.</div>` : ''}

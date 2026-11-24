@@ -5,7 +5,7 @@
   let D = null, ruta = null, map = null, layer = null, me = null, meMarker = null, abierto = null, fitted = false, lastSend = 0;
 
   root.innerHTML = `<div id="app">
-    <div class="bar-top"><div class="row"><div class="logo">NUTRI<b>BITES</b></div>
+    <div class="bar-top"><div class="row"><img class="logo-img" src="../assets/logo-nutribites.png" alt="Nutribites" style="height:40px;width:auto">
       <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--mu)">${esc(user.nombre.split(' ')[0])}</span><button class="btn sm" id="out">Salir</button></div></div>
       <div class="prog"><b id="pg">0/0</b><span style="color:var(--mu)" id="pgs"></span></div>
       <div class="bar" style="margin-top:8px"><i id="pb" style="width:0;background:var(--or)"></i></div></div>

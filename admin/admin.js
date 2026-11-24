@@ -26,7 +26,7 @@
   const NAV = [['resumen', 'Panel', 'grid'], ['rutas', 'Asignar rutas', 'route'], ['ventas', 'Ventas', 'dollar'], ['propuestas', 'Propuestas', 'inbox'], ['clientes', 'Clientes', 'store'], ['productos', 'Productos', 'box']];
   root.innerHTML = `<div id="app">
     <nav>
-      <div class="logo">NUTRI<b>BITES</b><small>PANEL DEL DUEÑO</small></div>
+      <div class="logo-wrap"><img class="logo-img" src="../assets/logo-nutribites.png" alt="Nutribites"><small>PANEL DEL DUEÑO</small></div>
       <div class="usr"><span class="avatar" style="--c:${user.color || '#FF8C42'}">${NB.iniciales(user.nombre)}</span><div><b>${esc(user.nombre)}</b><small>Administrador</small></div><button class="bell" id="bell" title="Alertas">${I.bell}<i id="bellN"></i></button></div>
       <div class="srch">${I.search}<input id="q" placeholder="Buscar cliente…" autocomplete="off"><div class="qr" id="qr"></div></div>
       <div class="inbox"><h2>Alertas <span class="chip or" id="alN">0</span></h2><small id="alS">Todo en orden</small></div>

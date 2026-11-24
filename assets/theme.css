@@ -12,6 +12,8 @@ button{cursor:pointer}
 a{color:var(--or);text-decoration:none}
 .logo{font-weight:900;letter-spacing:.5px;font-size:20px;text-transform:uppercase}
 .logo b{color:var(--or);font-weight:900}
+.logo-img{display:block;max-width:100%;height:auto}
+.login-logo{width:230px;margin:0 auto 6px}
 .logo small{display:block;font-size:10px;font-weight:600;letter-spacing:2px;color:var(--mu);margin-top:2px}
 
 /* Controles */
