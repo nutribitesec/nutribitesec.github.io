@@ -51,14 +51,14 @@
   .foot .torn{position:absolute;inset:0}
   .foot p{position:relative;font-family:var(--hand);font-size:25px;font-weight:700;line-height:1.05;color:var(--ink);transform:rotate(-2deg)}
   .done{text-align:center;padding:30px 4px 10px}
-  .done svg{width:120px;height:120px;margin:0 auto 6px;display:block}
+  .ok-sello{position:relative;width:120px;height:120px;margin:0 auto 6px}
+  .ok-sello svg{width:100%;height:100%;display:block}
+  .ok-sello span{position:absolute;inset:0;display:grid;place-items:center;font:400 52px var(--disp);color:var(--ink)}
   .done h1{max-width:none;margin:8px 0}
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-<symbol id="flower" viewBox="0 0 100 100"><g fill="var(--petal,#FFC93C)" stroke="#161312" stroke-width="3"><circle cx="77.0" cy="50.0" r="17"/><circle cx="69.1" cy="69.1" r="17"/><circle cx="50.0" cy="77.0" r="17"/><circle cx="30.9" cy="69.1" r="17"/><circle cx="23.0" cy="50.0" r="17"/><circle cx="30.9" cy="30.9" r="17"/><circle cx="50.0" cy="23.0" r="17"/><circle cx="69.1" cy="30.9" r="17"/></g><circle cx="50" cy="50" r="14" fill="var(--core,#EF4B2B)" stroke="#161312" stroke-width="3"/><path d="M43 48 q2 -3 4 0 M53 48 q2 -3 4 0 M43 55 q7 7 14 0" fill="none" stroke="#161312" stroke-width="2.6" stroke-linecap="round"/></symbol>
-<symbol id="daisy" viewBox="0 0 100 100"><g fill="#fff" stroke="#161312" stroke-width="3"><circle cx="81.0" cy="50.0" r="13"/><circle cx="75.1" cy="68.2" r="13"/><circle cx="59.6" cy="79.5" r="13"/><circle cx="40.4" cy="79.5" r="13"/><circle cx="24.9" cy="68.2" r="13"/><circle cx="19.0" cy="50.0" r="13"/><circle cx="24.9" cy="31.8" r="13"/><circle cx="40.4" cy="20.5" r="13"/><circle cx="59.6" cy="20.5" r="13"/><circle cx="75.1" cy="31.8" r="13"/></g><circle cx="50" cy="50" r="15" fill="#FFC93C" stroke="#161312" stroke-width="3"/></symbol>
 <symbol id="burst" viewBox="0 0 100 100"><polygon points="50.0,2.0 58.7,12.0 70.8,6.8 74.3,19.5 87.5,20.1 85.1,33.1 96.8,39.3 89.0,50.0 96.8,60.7 85.1,66.9 87.5,79.9 74.3,80.5 70.8,93.2 58.7,88.0 50.0,98.0 41.3,88.0 29.2,93.2 25.7,80.5 12.5,79.9 14.9,66.9 3.2,60.7 11.0,50.0 3.2,39.3 14.9,33.1 12.5,20.1 25.7,19.5 29.2,6.8 41.3,12.0" fill="var(--bf,#FFC93C)" stroke="#161312" stroke-width="3" stroke-linejoin="round"/></symbol>
 <symbol id="heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.800-8 11-8 11z" fill="none" stroke="#161312" stroke-width="1.8" stroke-linejoin="round"/></symbol>
 <symbol id="smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#161312" stroke-width="1.8"/><path d="M8.5 10v1.2M15.500 10v1.2M8 14.500q4 3.500 8 0" fill="none" stroke="#161312" stroke-width="1.8" stroke-linecap="round"/></symbol>
@@ -78,7 +78,7 @@
         <div id="phin"><span class="ic"><svg><use href="#cam"/></svg></span><b>Toca para tomar la foto</b><span>Que se vea el letrero y la puerta</span></div></label>
     </div>
 
-    <div class="step" id="s2"><svg class="st" style="right:-16px;top:-30px;width:62px;height:62px;--petal:#EF4B2B;--core:#FFC93C;transform:rotate(14deg)" viewBox="0 0 100 100"><use href="#flower"/></svg><h2><i>2</i>Ubicación</h2>
+    <div class="step" id="s2"><h2><i>2</i>Ubicación</h2>
       <button class="btn pri" id="gps" type="button">📍 Usar mi ubicación</button>
       <div id="pm"></div>
       <p class="hint" id="lh">Si estás en la tienda, pulsa el botón. También puedes tocar el mapa para mover el punto.</p>
@@ -95,12 +95,12 @@
     <button class="btn pri big" id="go" type="button">Enviar tienda →</button>
   </div>
   <div class="done" id="done" hidden>
-    <svg viewBox="0 0 100 100"><use href="#flower"/></svg>
+    <div class="ok-sello"><svg viewBox="0 0 100 100"><use href="#burst"/></svg><span>✓</span></div>
     <h1>¡Gracias por <span class="hl">ayudarnos a construir</span>!</h1>
     <p class="sub" style="margin:0 auto 18px">Tu envío quedó registrado.</p>
     <button class="btn pri big" id="otra" type="button" style="width:100%">Registrar otra tienda</button>
   </div>
-  <div class="foot"><div class="torn"></div><svg class="st" style="right:14px;top:6px;width:64px;height:64px;transform:rotate(14deg)" viewBox="0 0 100 100"><use href="#daisy"/></svg><p>gracias por<br>ayudarnos a construir</p></div>
+  <div class="foot"><div class="torn"></div><p>gracias por<br>ayudarnos a construir</p></div>
 </div>
 <script src="../assets/vendor/leaflet/leaflet.js"></script>
 <script src="../assets/config.js"></script>
