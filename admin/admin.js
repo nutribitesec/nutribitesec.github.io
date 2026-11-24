@@ -1,7 +1,7 @@
 (async function () {
-  const root = document.getElementById('root'), CFG = NB.CFG = window.NB_CONFIG, esc = NB.esc, MAX = 20;
+  const root = document.getElementById('root'), CFG = NB.CFG = window.NB_CONFIG, esc = NB.esc, MAX = 30;
   const user = await NB.requireLogin('admin', root, 'Panel del dueño');
-  let fecha = NB.hoy(), D = null, view = 'resumen', map = null, layer = null, fitted = false, focoV = null;
+  let fecha = NB.hoy(), D = null, P = [], view = 'resumen', map = null, layer = null, fitted = false, focoV = null;
   let sel = [], selV = null;   // constructor de rutas
 
   const sv = d => `<svg class="i" viewBox="0 0 24 24">${d}</svg>`;
@@ -20,15 +20,16 @@
     chev: sv('<path d="M6 15l6-6 6 6"/>'), arrow: sv('<path d="M5 12h14M13 6l6 6-6 6"/>'),
     pin: sv('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'),
     phone: sv('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>'),
-    check: sv('<path d="M5 12l5 5 9-10"/>'), warn: sv('<path d="M12 4l9 16H3zM12 10v4M12 17h0"/>'), chart: sv('<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>')
+    check: sv('<path d="M5 12l5 5 9-10"/>'), warn: sv('<path d="M12 4l9 16H3zM12 10v4M12 17h0"/>'), chart: sv('<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'),
+    inbox: sv('<path d="M4 13l3-8h10l3 8v6H4zM4 13h5l1 2h4l1-2h5"/>')
   };
-  const NAV = [['resumen', 'Panel', 'grid'], ['rutas', 'Asignar rutas', 'route'], ['ventas', 'Ventas', 'dollar'], ['clientes', 'Clientes', 'store'], ['productos', 'Productos', 'box']];
+  const NAV = [['resumen', 'Panel', 'grid'], ['rutas', 'Asignar rutas', 'route'], ['ventas', 'Ventas', 'dollar'], ['propuestas', 'Tiendas propuestas', 'inbox'], ['clientes', 'Clientes', 'store'], ['productos', 'Productos', 'box']];
   root.innerHTML = `<div id="app">
     <nav>
       <div class="usr"><span class="avatar" style="--c:${user.color || '#FF8C42'}">${NB.iniciales(user.nombre)}</span><div><b>${esc(user.nombre)}</b><small>Administrador</small></div><button class="bell" id="bell" title="Alertas">${I.bell}<i id="bellN"></i></button></div>
       <div class="srch">${I.search}<input id="q" placeholder="Buscar cliente…" autocomplete="off"><div class="qr" id="qr"></div></div>
       <div class="inbox"><h2>Alertas <span class="chip or" id="alN">0</span></h2><small id="alS">Todo en orden</small></div>
-      ${NAV.map(n => `<a class="t" data-v="${n[0]}">${I[n[2]]}${n[1]}</a>`).join('')}
+      ${NAV.map(n => `<a class="t" data-v="${n[0]}">${I[n[2]]}${n[1]}${n[0] === 'propuestas' ? '<i class="nb" id="pBadge"></i>' : ''}</a>`).join('')}
       <div class="sp"></div>
       ${NB.data.demo ? `<a class="t" id="rst">${I.route}Reiniciar demo</a>` : ''}
       <a class="t" id="out">${I.out}Cerrar sesión</a>
@@ -41,8 +42,8 @@
   const cli = id => D.clientes.find(c => c.id === id), vend = id => D.vendedores.find(v => v.id === id) || { nombre: '—', color: '#888' };
   const ped = pid => D.pedidos.find(p => p.parada_id === pid);
   const paradasDe = r => r.paradas || [];
-  async function reload() { D = await NB.data.dia(fecha); if (typeof pintarAlertas === 'function' && document.getElementById('alN')) pintarAlertas(); }
-  function destroyMap() { if (map) { map.remove(); map = null; layer = null; fitted = false; } }
+  async function reload() { D = await NB.data.dia(fecha); P = await NB.data.propuestas().catch(() => []); const pb = document.getElementById('pBadge'); if (pb) pb.textContent = P.filter(x => x.estado === 'pendiente').length || ''; if (typeof pintarAlertas === 'function' && document.getElementById('alN')) pintarAlertas(); }
+  function destroyMap() { if (map) { map.stop(); map.remove(); map = null; layer = null; fitted = false; } }
 
   function head(titulo, sub, extra = '') {
     return `<header class="top"><div><h1>${titulo}</h1><p>${sub}</p></div>
@@ -54,7 +55,7 @@
     view = v; destroyMap(); main.classList.toggle('fill', v === 'resumen');
     root.querySelectorAll('nav a.t[data-v]').forEach(a => a.classList.toggle('on', a.dataset.v === v));
     if (!D) await reload();
-    ({ resumen, rutas, ventas, clientes, productos }[v])();
+    ({ resumen, rutas, ventas, clientes, productos, propuestas }[v])();
   }
 
   /* ───────── ALERTAS ───────── */
@@ -66,6 +67,8 @@
       if (hoy && r.ultima_at && ps.some(p => p.estado === 'pendiente')) { const min = (Date.now() - new Date(r.ultima_at)) / 60000; if (min > 30) out.push({ v: r.vendedor_id, tx: `${v.nombre} sin señal hace ${Math.round(min)} min`, tipo: 'Sin señal' }); }
     });
     if (hoy) D.vendedores.filter(v => !D.rutas.some(r => r.vendedor_id === v.id)).forEach(v => out.push({ v: v.id, tx: `${v.nombre} no tiene ruta asignada hoy`, tipo: 'Sin ruta' }));
+    const pend = P.filter(x => x.estado === 'pendiente').length;
+    if (pend) out.push({ tipo: 'Propuestas', tx: pend + (pend === 1 ? ' tienda nueva por revisar' : ' tiendas nuevas por revisar') });
     return out;
   }
   function pintarAlertas() {
@@ -76,7 +79,7 @@
   function verAlertas() {
     const a = alertas();
     NB.modal(`<h2>Alertas</h2><p style="color:var(--mu);margin-bottom:10px">Lo que necesita tu atención hoy.</p>${a.length ? a.map((x, i) => `<div class="ev" style="cursor:pointer" data-a="${i}"><span class="chip or">${x.tipo}</span><div style="flex:1">${esc(x.tx)}</div></div>`).join('') : '<div class="empty">Sin alertas. Todo en orden ✓</div>'}`, (el, close) => {
-      el.querySelectorAll('[data-a]').forEach(e => e.onclick = async () => { const x = a[+e.dataset.a]; close(); await show('resumen'); if (D.rutas.some(r => r.vendedor_id === x.v)) setFoco(x.v); });
+      el.querySelectorAll('[data-a]').forEach(e => e.onclick = async () => { const x = a[+e.dataset.a]; close(); if (x.tipo === 'Propuestas') return show('propuestas'); await show('resumen'); if (D.rutas.some(r => r.vendedor_id === x.v)) setFoco(x.v); });
     });
   }
   const bell = () => document.getElementById('bell').onclick = verAlertas;
@@ -203,6 +206,64 @@
     }).join('') : '<div class="empty">Aún no hay visitas registradas.</div>';
   }
 
+  /* ───────── TIENDAS PROPUESTAS (colaboradores externos) ───────── */
+  let pTab = 'pendiente', pMapa = null, pMarks = {};
+  const estrellas = n => n ? '★'.repeat(n) + '<span style="color:#444">' + '★'.repeat(5 - n) + '</span>' : '<span style="color:var(--mu)">sin calificar</span>';
+  const duplicado = p => { let b = null, bd = Infinity; D.clientes.forEach(c => { const d = NB.dist([p.lat, p.lng], [c.lat, c.lng]); if (d < bd) { bd = d; b = c; } }); return b && bd < 60 ? { c: b, d: bd } : null; };
+  function propuestas() {
+    const cnt = e => P.filter(x => x.estado === e).length, lst = P.filter(x => x.estado === pTab), link = new URL('../subir/', location.href).href;
+    main.innerHTML = `<header class="top"><div><h1>Tiendas propuestas</h1><p>Fotos y ubicaciones enviadas por colaboradores. Apruébalas para sumarlas a tu mapa de clientes.</p></div><div class="tools"><span class="live"><i></i>En vivo</span></div></header>
+      <div class="card pad" style="margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span style="color:var(--mu)">Link para colaboradores</span><b style="word-break:break-all;flex:1;min-width:200px">${esc(link)}</b><button class="btn sm pri" id="cpl">Copiar link</button></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">${[['pendiente', 'Pendientes'], ['aprobada', 'Aprobadas'], ['rechazada', 'Rechazadas']].map(t => `<button class="btn sm ${pTab === t[0] ? 'pri' : ''}" data-t="${t[0]}">${t[1]} (${cnt(t[0])})</button>`).join('')}</div>
+      <div class="rutas"><div class="card side"><div class="lst" id="plst">${lst.map(p => {
+        const dup = p.estado === 'pendiente' && duplicado(p);
+        return `<div class="li" style="align-items:flex-start;flex-direction:column;gap:10px;padding:14px" data-p="${p.id}">
+          ${p.foto_url ? `<img src="${esc(p.foto_url)}" alt="Fachada" style="width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:14px;cursor:pointer" data-z="${p.id}">` : ''}
+          <div style="width:100%"><b style="font-size:16px">${esc(p.nombre)}</b> <span class="chip">${esc(p.tipo)}</span>
+            <div style="font-size:18px;color:var(--ye);margin:4px 0">${estrellas(p.estrellas)}</div>
+            <small style="display:block;color:var(--mu)">Movimiento ${esc(p.movimiento)} · Snacks: ${p.vende_snacks === 'si' ? 'sí' : p.vende_snacks === 'no' ? 'no' : 'no sabe'} · ${new Date(p.creado_at).toLocaleString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</small>
+            ${p.comentario ? `<small style="display:block;margin-top:4px">“${esc(p.comentario)}”</small>` : ''}
+            ${p.motivo ? `<small style="display:block;margin-top:4px;color:#ff7a7e">Rechazada: ${esc(p.motivo)}</small>` : ''}
+            ${dup ? `<span class="chip" style="margin-top:6px;background:rgba(255,200,61,.15);color:var(--ye)">⚠ Posible duplicado: ${esc(dup.c.nombre)} (${NB.km(dup.d)})</span>` : ''}</div>
+          ${p.estado === 'pendiente' ? `<div style="display:flex;gap:8px;width:100%"><button class="btn ok sm" style="flex:1" data-ap="${p.id}">Aprobar</button><button class="btn bad sm" style="flex:1" data-rj="${p.id}">Rechazar</button></div>` : ''}</div>`;
+      }).join('') || `<div class="empty">No hay tiendas ${pTab === 'pendiente' ? 'pendientes' : pTab === 'aprobada' ? 'aprobadas' : 'rechazadas'}.</div>`}</div></div><div class="mapbox" id="map"></div></div>`;
+    document.getElementById('cpl').onclick = async () => { try { await navigator.clipboard.writeText(link); NB.toast('Link copiado'); } catch (e) { prompt('Copia este link:', link); } };
+    document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { pTab = b.dataset.t; destroyMap(); propuestas(); });
+    // mapa: clientes existentes (gris) y propuestas del estado elegido
+    map = NB.mapa('map', { z: 13 }); const g = L.layerGroup().addTo(map), pts = []; pMarks = {};
+    D.clientes.forEach(c => L.circleMarker([c.lat, c.lng], { radius: 4, color: '#555', weight: 1, fillColor: '#444', fillOpacity: .9 }).bindTooltip(esc(c.nombre) + ' (cliente)').addTo(g));
+    lst.forEach(p => { pts.push([p.lat, p.lng]); pMarks[p.id] = L.marker([p.lat, p.lng], { icon: NB.pin(p.estrellas || '?', p.estado === 'aprobada' ? 'done' : p.estado === 'rechazada' ? 'skip' : 'next', '#FF8C42'), zIndexOffset: 800 }).bindPopup(`<b>${esc(p.nombre)}</b><br>${esc(p.tipo)} · ${p.estrellas || '?'}★`).addTo(g); pMarks[p.id].on('click', () => { const el = document.querySelector(`[data-p="${p.id}"]`); el && el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }); });
+    if (pts.length) map.fitBounds(pts, { padding: [50, 50], maxZoom: 16, animate: false }); else map.setView(CFG.CENTRO, 13);
+    document.querySelectorAll('[data-z]').forEach(i => i.onclick = () => { const p = P.find(x => x.id === i.dataset.z); map.flyTo([p.lat, p.lng], 18, { duration: .7 }); setTimeout(() => pMarks[p.id] && pMarks[p.id].openPopup(), 750); });
+    document.querySelectorAll('[data-ap]').forEach(b => b.onclick = () => aprobar(P.find(x => x.id === b.dataset.ap)));
+    document.querySelectorAll('[data-rj]').forEach(b => b.onclick = () => rechazar(P.find(x => x.id === b.dataset.rj)));
+  }
+  function aprobar(p) {
+    NB.modal(`<h2>Aprobar tienda</h2><p style="color:var(--mu);margin-bottom:6px">Se agregará a tus clientes con su calificación (${p.estrellas || '?'}★).</p>
+      ${p.foto_url ? `<img src="${esc(p.foto_url)}" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:6px">` : ''}
+      <label class="f">Nombre del negocio</label><input class="in" id="an" value="${esc(p.nombre)}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="f">Tipo</label><input class="in" id="at" value="${esc(p.tipo)}"></div><div><label class="f">Teléfono (opcional)</label><input class="in" id="ap" placeholder="09…"></div></div>
+      <label class="f">Dirección o referencia</label><input class="in" id="ad" placeholder="Ej.: Av. Cevallos y Mera, junto al banco">
+      <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end"><button class="btn" id="ac">Cancelar</button><button class="btn ok" id="ag">Aprobar y agregar</button></div>`, (el, close) => {
+      el.querySelector('#ac').onclick = close;
+      el.querySelector('#ag').onclick = async () => {
+        const nombre = el.querySelector('#an').value.trim(); if (nombre.length < 2) return NB.toast('Escribe el nombre', 'bad');
+        const cliente = { nombre, tipo: el.querySelector('#at').value.trim() || 'Tienda', telefono: el.querySelector('#ap').value.trim() || null, direccion: el.querySelector('#ad').value.trim() || null, lat: p.lat, lng: p.lng, estrellas: p.estrellas, movimiento: p.movimiento, vende_snacks: p.vende_snacks, foto_path: p.foto_path || null };
+        if (NB.data.demo) cliente.foto_url = p.foto_url;
+        try { await NB.data.resolverPropuesta(p.id, { accion: 'aprobar', cliente }); await reload(); close(); NB.toast('Tienda agregada a tus clientes'); destroyMap(); propuestas(); }
+        catch (e) { console.error(e); NB.toast('No se pudo aprobar', 'bad'); }
+      };
+    });
+  }
+  function rechazar(p) {
+    NB.modal(`<h2>Rechazar tienda</h2><p style="color:var(--mu)">${esc(p.nombre)}</p><label class="f">Motivo</label>
+      <select class="in" id="rm"><option>Duplicada</option><option>Ubicación incorrecta</option><option>Foto no sirve</option><option>No es un buen punto de venta</option><option>Otro</option></select>
+      <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end"><button class="btn" id="rc">Cancelar</button><button class="btn bad" id="rg">Rechazar</button></div>`, (el, close) => {
+      el.querySelector('#rc').onclick = close;
+      el.querySelector('#rg').onclick = async () => { try { await NB.data.resolverPropuesta(p.id, { accion: 'rechazar', motivo: el.querySelector('#rm').value }); await reload(); close(); destroyMap(); propuestas(); } catch (e) { console.error(e); NB.toast('No se pudo rechazar', 'bad'); } };
+    });
+  }
+
   /* ───────── ASIGNAR RUTAS ───────── */
   let capa = null;
   function rutas() {
@@ -214,6 +275,7 @@
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px"><b style="font-size:22px" id="cnt"></b><span style="color:var(--mu)" id="km"></span></div>
         <div class="bar" style="margin-top:8px"><i id="bcnt" style="width:0"></i></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+          <select class="in" id="ms" style="grid-column:1/3;padding:8px 12px" title="Estrellas mínimas al sugerir"><option value="0">Sugerir: todas las tiendas</option><option value="3" selected>Sugerir: solo tiendas de 3★ o más</option><option value="4">Sugerir: solo tiendas de 4★ o más</option></select>
           <button class="btn sm" id="sug" title="Agrega los clientes libres más cercanos al centro del mapa">Sugerir cercanos</button>
           <button class="btn sm" id="opt">Optimizar orden</button>
           <button class="btn sm" id="lim">Vaciar</button>
@@ -226,7 +288,7 @@
     const pts = D.clientes.map(c => [c.lat, c.lng]); if (pts.length) map.fitBounds(pts, { padding: [30, 30] });
     document.getElementById('sv').onchange = e => { selV = e.target.value; cargarSel(); pintarSel(); };
     document.getElementById('sug').onclick = () => {
-      const ctr = map.getCenter(), libres = D.clientes.filter(c => !sel.includes(c.id) && !ocupado(c.id));
+      const ctr = map.getCenter(), min = +document.getElementById('ms').value, libres = D.clientes.filter(c => !sel.includes(c.id) && !ocupado(c.id) && (c.estrellas == null || c.estrellas >= min));
       libres.sort((a, b) => NB.dist([a.lat, a.lng], [ctr.lat, ctr.lng]) - NB.dist([b.lat, b.lng], [ctr.lat, ctr.lng]));
       sel = sel.concat(libres.slice(0, MAX - sel.length).map(c => c.id)); ordenar(); pintarSel();
     };
@@ -246,7 +308,7 @@
     D.clientes.forEach(c => {
       const i = sel.indexOf(c.id), oc = ocupado(c.id);
       const icon = i >= 0 ? NB.pin(i + 1, '', v.color) : oc ? NB.pin('•', 'grey') : NB.pin('+', 'pend', '#8a8a8a');
-      L.marker([c.lat, c.lng], { icon, zIndexOffset: i >= 0 ? 500 : 0 }).bindTooltip(esc(c.nombre) + (oc ? ' (ya asignado a otro vendedor)' : ''), { direction: 'top', offset: [0, -26] })
+      L.marker([c.lat, c.lng], { icon, zIndexOffset: i >= 0 ? 500 : 0 }).bindTooltip(esc(c.nombre) + (c.estrellas ? ' · ' + c.estrellas + '★' : '') + (oc ? ' (ya asignado a otro vendedor)' : ''), { direction: 'top', offset: [0, -26] })
         .on('click', () => {
           if (oc) return NB.toast('Ese cliente ya está en la ruta de otro vendedor', 'bad');
           if (i >= 0) sel.splice(i, 1); else if (sel.length >= MAX) return NB.toast(`Máximo ${MAX} puntos por ruta`, 'bad'); else sel.push(c.id);
@@ -289,8 +351,8 @@
   function clientes(filtro = '') {
     const f = filtro.toLowerCase(), lst = D.clientes.filter(c => (c.nombre + c.tipo + (c.direccion || '')).toLowerCase().includes(f));
     main.innerHTML = head('Clientes', `${D.clientes.length} puntos de venta`, `<input class="in" id="bus" placeholder="Buscar…" value="${esc(filtro)}" style="width:200px"><button class="btn pri" id="nuevo">+ Nuevo cliente</button>`) + `
-      <div class="card" style="overflow:auto"><table><tr><th>Nombre</th><th>Tipo</th><th>Dirección</th><th>Teléfono</th><th></th></tr>
-      ${lst.map(c => `<tr><td><b>${esc(c.nombre)}</b></td><td><span class="chip">${esc(c.tipo)}</span></td><td style="color:var(--mu)">${esc(c.direccion || '')}</td><td>${esc(c.telefono || '')}</td><td class="num"><button class="btn sm" data-e="${c.id}">Editar</button></td></tr>`).join('') || '<tr><td colspan="5" class="empty">Sin resultados.</td></tr>'}</table></div>`;
+      <div class="card" style="overflow:auto"><table><tr><th>Nombre</th><th>Tipo</th><th>Dirección</th><th>Teléfono</th><th>Calificación</th><th></th></tr>
+      ${lst.map(c => `<tr><td><b>${esc(c.nombre)}</b></td><td><span class="chip">${esc(c.tipo)}</span></td><td style="color:var(--mu)">${esc(c.direccion || '')}</td><td>${esc(c.telefono || '')}</td><td style="color:var(--ye)">${c.estrellas ? '★'.repeat(c.estrellas) : '<span style="color:var(--mu)">—</span>'}</td><td class="num"><button class="btn sm" data-e="${c.id}">Editar</button></td></tr>`).join('') || '<tr><td colspan="6" class="empty">Sin resultados.</td></tr>'}</table></div>`;
     bindFecha();
     const b = document.getElementById('bus'); b.oninput = () => { clientes(b.value); const n = document.getElementById('bus'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
     document.getElementById('nuevo').onclick = () => formCliente();
@@ -337,6 +399,6 @@
 
   // Tiempo real: refresca datos y repinta solo donde no se pisa el trabajo del usuario
   let t = null;
-  NB.data.suscribir(() => { clearTimeout(t); t = setTimeout(async () => { try { await reload(); if (view === 'resumen') pintarResumen(); else if (view === 'ventas') ventas(); } catch (e) { console.error(e); } }, 250); });
+  NB.data.suscribir(() => { clearTimeout(t); t = setTimeout(async () => { try { await reload(); if (view === 'resumen') pintarResumen(); else if (view === 'ventas') ventas(); else if (view === 'propuestas') { destroyMap(); propuestas(); } } catch (e) { console.error(e); } }, 250); });
   show('resumen');
 })();
