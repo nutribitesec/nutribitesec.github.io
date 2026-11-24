@@ -207,8 +207,10 @@
   }
 
   /* ───────── TIENDAS PROPUESTAS (colaboradores externos) ───────── */
-  let pTab = 'pendiente', pMapa = null, pMarks = {};
-  const estrellas = n => n ? '★'.repeat(n) + '<span style="color:#444">' + '★'.repeat(5 - n) + '</span>' : '<span style="color:var(--mu)">sin calificar</span>';
+  let pTab = 'pendiente', pMarks = {};
+  const sn = v => v === 'si' ? 'Sí' : v === 'no' ? 'No' : '—';
+  const chipSN = (txt, v) => `<span class="chip ${v === 'si' ? 'ok' : ''}">${txt}: ${sn(v)}</span>`;
+  const nombreDe = p => p.nombre || 'Tienda sin nombre';
   const duplicado = p => { let b = null, bd = Infinity; D.clientes.forEach(c => { const d = NB.dist([p.lat, p.lng], [c.lat, c.lng]); if (d < bd) { bd = d; b = c; } }); return b && bd < 60 ? { c: b, d: bd } : null; };
   function propuestas() {
     const cnt = e => P.filter(x => x.estado === e).length, lst = P.filter(x => x.estado === pTab), link = new URL('../subir/', location.href).href;
@@ -219,10 +221,9 @@
         const dup = p.estado === 'pendiente' && duplicado(p);
         return `<div class="li" style="align-items:flex-start;flex-direction:column;gap:10px;padding:14px" data-p="${p.id}">
           ${p.foto_url ? `<img src="${esc(p.foto_url)}" alt="Fachada" style="width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:14px;cursor:pointer" data-z="${p.id}">` : ''}
-          <div style="width:100%"><b style="font-size:16px">${esc(p.nombre)}</b> <span class="chip">${esc(p.tipo)}</span>
-            <div style="font-size:18px;color:var(--ye);margin:4px 0">${estrellas(p.estrellas)}</div>
-            <small style="display:block;color:var(--mu)">Movimiento ${esc(p.movimiento)} · Snacks: ${p.vende_snacks === 'si' ? 'sí' : p.vende_snacks === 'no' ? 'no' : 'no sabe'} · ${new Date(p.creado_at).toLocaleString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</small>
-            ${p.comentario ? `<small style="display:block;margin-top:4px">“${esc(p.comentario)}”</small>` : ''}
+          <div style="width:100%"><b style="font-size:16px">${esc(nombreDe(p))}</b>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${chipSN('Frutos secos', p.vende_frutos_secos)}${chipSN('Snacks de mascotas', p.vende_mascotas)}</div>
+            <small style="display:block;color:var(--mu)">${new Date(p.creado_at).toLocaleString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</small>
             ${p.motivo ? `<small style="display:block;margin-top:4px;color:#ff7a7e">Rechazada: ${esc(p.motivo)}</small>` : ''}
             ${dup ? `<span class="chip" style="margin-top:6px;background:rgba(255,200,61,.15);color:var(--ye)">⚠ Posible duplicado: ${esc(dup.c.nombre)} (${NB.km(dup.d)})</span>` : ''}</div>
           ${p.estado === 'pendiente' ? `<div style="display:flex;gap:8px;width:100%"><button class="btn ok sm" style="flex:1" data-ap="${p.id}">Aprobar</button><button class="btn bad sm" style="flex:1" data-rj="${p.id}">Rechazar</button></div>` : ''}</div>`;
@@ -232,23 +233,23 @@
     // mapa: clientes existentes (gris) y propuestas del estado elegido
     map = NB.mapa('map', { z: 13 }); const g = L.layerGroup().addTo(map), pts = []; pMarks = {};
     D.clientes.forEach(c => L.circleMarker([c.lat, c.lng], { radius: 4, color: '#555', weight: 1, fillColor: '#444', fillOpacity: .9 }).bindTooltip(esc(c.nombre) + ' (cliente)').addTo(g));
-    lst.forEach(p => { pts.push([p.lat, p.lng]); pMarks[p.id] = L.marker([p.lat, p.lng], { icon: NB.pin(p.estrellas || '?', p.estado === 'aprobada' ? 'done' : p.estado === 'rechazada' ? 'skip' : 'next', '#FF8C42'), zIndexOffset: 800 }).bindPopup(`<b>${esc(p.nombre)}</b><br>${esc(p.tipo)} · ${p.estrellas || '?'}★`).addTo(g); pMarks[p.id].on('click', () => { const el = document.querySelector(`[data-p="${p.id}"]`); el && el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }); });
+    lst.forEach(p => { pts.push([p.lat, p.lng]); pMarks[p.id] = L.marker([p.lat, p.lng], { icon: NB.pin(p.vende_frutos_secos === 'si' ? '✓' : '•', p.estado === 'aprobada' ? 'done' : p.estado === 'rechazada' ? 'skip' : 'next', '#FF8C42'), zIndexOffset: 800 }).bindPopup(`<b>${esc(nombreDe(p))}</b><br>Frutos secos: ${sn(p.vende_frutos_secos)}<br>Snacks de mascotas: ${sn(p.vende_mascotas)}`).addTo(g); pMarks[p.id].on('click', () => { const el = document.querySelector(`[data-p="${p.id}"]`); el && el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }); });
     if (pts.length) map.fitBounds(pts, { padding: [50, 50], maxZoom: 16, animate: false }); else map.setView(CFG.CENTRO, 13);
     document.querySelectorAll('[data-z]').forEach(i => i.onclick = () => { const p = P.find(x => x.id === i.dataset.z); map.flyTo([p.lat, p.lng], 18, { duration: .7 }); setTimeout(() => pMarks[p.id] && pMarks[p.id].openPopup(), 750); });
     document.querySelectorAll('[data-ap]').forEach(b => b.onclick = () => aprobar(P.find(x => x.id === b.dataset.ap)));
     document.querySelectorAll('[data-rj]').forEach(b => b.onclick = () => rechazar(P.find(x => x.id === b.dataset.rj)));
   }
   function aprobar(p) {
-    NB.modal(`<h2>Aprobar tienda</h2><p style="color:var(--mu);margin-bottom:6px">Se agregará a tus clientes con su calificación (${p.estrellas || '?'}★).</p>
+    NB.modal(`<h2>Aprobar tienda</h2><p style="color:var(--mu);margin-bottom:6px">Se agregará a tus clientes en esa ubicación. Puedes ponerle nombre ahora o dejarlo en blanco.</p>
       ${p.foto_url ? `<img src="${esc(p.foto_url)}" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:6px">` : ''}
-      <label class="f">Nombre del negocio</label><input class="in" id="an" value="${esc(p.nombre)}">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="f">Tipo</label><input class="in" id="at" value="${esc(p.tipo)}"></div><div><label class="f">Teléfono (opcional)</label><input class="in" id="ap" placeholder="09…"></div></div>
-      <label class="f">Dirección o referencia</label><input class="in" id="ad" placeholder="Ej.: Av. Cevallos y Mera, junto al banco">
+      <label class="f">Nombre del negocio (opcional)</label><input class="in" id="an" value="${esc(p.nombre || '')}" placeholder="Ej.: Minimarket La Esquina">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="f">Tipo</label><input class="in" id="at" value="${esc(p.tipo || 'Tienda')}"></div><div><label class="f">Teléfono (opcional)</label><input class="in" id="ap" placeholder="09…"></div></div>
+      <label class="f">Dirección o referencia (opcional)</label><input class="in" id="ad" placeholder="Ej.: Av. Cevallos y Mera, junto al banco">
       <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end"><button class="btn" id="ac">Cancelar</button><button class="btn ok" id="ag">Aprobar y agregar</button></div>`, (el, close) => {
       el.querySelector('#ac').onclick = close;
       el.querySelector('#ag').onclick = async () => {
-        const nombre = el.querySelector('#an').value.trim(); if (nombre.length < 2) return NB.toast('Escribe el nombre', 'bad');
-        const cliente = { nombre, tipo: el.querySelector('#at').value.trim() || 'Tienda', telefono: el.querySelector('#ap').value.trim() || null, direccion: el.querySelector('#ad').value.trim() || null, lat: p.lat, lng: p.lng, estrellas: p.estrellas, movimiento: p.movimiento, vende_snacks: p.vende_snacks, foto_path: p.foto_path || null };
+        const nombre = el.querySelector('#an').value.trim() || ('Tienda sin nombre ' + (D.clientes.length + 1));
+        const cliente = { nombre, tipo: el.querySelector('#at').value.trim() || 'Tienda', telefono: el.querySelector('#ap').value.trim() || null, direccion: el.querySelector('#ad').value.trim() || null, lat: p.lat, lng: p.lng, vende_frutos_secos: p.vende_frutos_secos, vende_mascotas: p.vende_mascotas, foto_path: p.foto_path || null };
         if (NB.data.demo) cliente.foto_url = p.foto_url;
         try { await NB.data.resolverPropuesta(p.id, { accion: 'aprobar', cliente }); await reload(); close(); NB.toast('Tienda agregada a tus clientes'); destroyMap(); propuestas(); }
         catch (e) { console.error(e); NB.toast('No se pudo aprobar', 'bad'); }
@@ -256,7 +257,7 @@
     });
   }
   function rechazar(p) {
-    NB.modal(`<h2>Rechazar tienda</h2><p style="color:var(--mu)">${esc(p.nombre)}</p><label class="f">Motivo</label>
+    NB.modal(`<h2>Rechazar tienda</h2><p style="color:var(--mu)">${esc(nombreDe(p))}</p><label class="f">Motivo</label>
       <select class="in" id="rm"><option>Duplicada</option><option>Ubicación incorrecta</option><option>Foto no sirve</option><option>No es un buen punto de venta</option><option>Otro</option></select>
       <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end"><button class="btn" id="rc">Cancelar</button><button class="btn bad" id="rg">Rechazar</button></div>`, (el, close) => {
       el.querySelector('#rc').onclick = close;
@@ -275,7 +276,7 @@
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px"><b style="font-size:22px" id="cnt"></b><span style="color:var(--mu)" id="km"></span></div>
         <div class="bar" style="margin-top:8px"><i id="bcnt" style="width:0"></i></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
-          <select class="in" id="ms" style="grid-column:1/3;padding:8px 12px" title="Estrellas mínimas al sugerir"><option value="0">Sugerir: todas las tiendas</option><option value="3" selected>Sugerir: solo tiendas de 3★ o más</option><option value="4">Sugerir: solo tiendas de 4★ o más</option></select>
+          <select class="in" id="ms" style="grid-column:1/3;padding:8px 12px" title="Filtro al sugerir"><option value="todas" selected>Sugerir: todas las tiendas</option><option value="frutos">Sugerir: solo las que venden frutos secos</option><option value="mascotas">Sugerir: solo las que venden snacks de mascotas</option></select>
           <button class="btn sm" id="sug" title="Agrega los clientes libres más cercanos al centro del mapa">Sugerir cercanos</button>
           <button class="btn sm" id="opt">Optimizar orden</button>
           <button class="btn sm" id="lim">Vaciar</button>
@@ -288,7 +289,7 @@
     const pts = D.clientes.map(c => [c.lat, c.lng]); if (pts.length) map.fitBounds(pts, { padding: [30, 30] });
     document.getElementById('sv').onchange = e => { selV = e.target.value; cargarSel(); pintarSel(); };
     document.getElementById('sug').onclick = () => {
-      const ctr = map.getCenter(), min = +document.getElementById('ms').value, libres = D.clientes.filter(c => !sel.includes(c.id) && !ocupado(c.id) && (c.estrellas == null || c.estrellas >= min));
+      const ctr = map.getCenter(), fl = document.getElementById('ms').value, libres = D.clientes.filter(c => !sel.includes(c.id) && !ocupado(c.id) && (fl === 'todas' || (fl === 'frutos' && c.vende_frutos_secos === 'si') || (fl === 'mascotas' && c.vende_mascotas === 'si')));
       libres.sort((a, b) => NB.dist([a.lat, a.lng], [ctr.lat, ctr.lng]) - NB.dist([b.lat, b.lng], [ctr.lat, ctr.lng]));
       sel = sel.concat(libres.slice(0, MAX - sel.length).map(c => c.id)); ordenar(); pintarSel();
     };
@@ -308,7 +309,7 @@
     D.clientes.forEach(c => {
       const i = sel.indexOf(c.id), oc = ocupado(c.id);
       const icon = i >= 0 ? NB.pin(i + 1, '', v.color) : oc ? NB.pin('•', 'grey') : NB.pin('+', 'pend', '#8a8a8a');
-      L.marker([c.lat, c.lng], { icon, zIndexOffset: i >= 0 ? 500 : 0 }).bindTooltip(esc(c.nombre) + (c.estrellas ? ' · ' + c.estrellas + '★' : '') + (oc ? ' (ya asignado a otro vendedor)' : ''), { direction: 'top', offset: [0, -26] })
+      L.marker([c.lat, c.lng], { icon, zIndexOffset: i >= 0 ? 500 : 0 }).bindTooltip(esc(c.nombre) + (c.vende_frutos_secos === 'si' ? ' · frutos secos' : '') + (c.vende_mascotas === 'si' ? ' · mascotas' : '') + (oc ? ' (ya asignado a otro vendedor)' : ''), { direction: 'top', offset: [0, -26] })
         .on('click', () => {
           if (oc) return NB.toast('Ese cliente ya está en la ruta de otro vendedor', 'bad');
           if (i >= 0) sel.splice(i, 1); else if (sel.length >= MAX) return NB.toast(`Máximo ${MAX} puntos por ruta`, 'bad'); else sel.push(c.id);
@@ -351,8 +352,8 @@
   function clientes(filtro = '') {
     const f = filtro.toLowerCase(), lst = D.clientes.filter(c => (c.nombre + c.tipo + (c.direccion || '')).toLowerCase().includes(f));
     main.innerHTML = head('Clientes', `${D.clientes.length} puntos de venta`, `<input class="in" id="bus" placeholder="Buscar…" value="${esc(filtro)}" style="width:200px"><button class="btn pri" id="nuevo">+ Nuevo cliente</button>`) + `
-      <div class="card" style="overflow:auto"><table><tr><th>Nombre</th><th>Tipo</th><th>Dirección</th><th>Teléfono</th><th>Calificación</th><th></th></tr>
-      ${lst.map(c => `<tr><td><b>${esc(c.nombre)}</b></td><td><span class="chip">${esc(c.tipo)}</span></td><td style="color:var(--mu)">${esc(c.direccion || '')}</td><td>${esc(c.telefono || '')}</td><td style="color:var(--ye)">${c.estrellas ? '★'.repeat(c.estrellas) : '<span style="color:var(--mu)">—</span>'}</td><td class="num"><button class="btn sm" data-e="${c.id}">Editar</button></td></tr>`).join('') || '<tr><td colspan="6" class="empty">Sin resultados.</td></tr>'}</table></div>`;
+      <div class="card" style="overflow:auto"><table><tr><th>Nombre</th><th>Tipo</th><th>Dirección</th><th>Teléfono</th><th>Vende</th><th></th></tr>
+      ${lst.map(c => `<tr><td><b>${esc(c.nombre)}</b></td><td><span class="chip">${esc(c.tipo)}</span></td><td style="color:var(--mu)">${esc(c.direccion || '')}</td><td>${esc(c.telefono || '')}</td><td>${[c.vende_frutos_secos === 'si' ? '<span class="chip ok">Frutos secos</span>' : '', c.vende_mascotas === 'si' ? '<span class="chip ok">Mascotas</span>' : ''].join(' ') || '<span style="color:var(--mu)">—</span>'}</td><td class="num"><button class="btn sm" data-e="${c.id}">Editar</button></td></tr>`).join('') || '<tr><td colspan="6" class="empty">Sin resultados.</td></tr>'}</table></div>`;
     bindFecha();
     const b = document.getElementById('bus'); b.oninput = () => { clientes(b.value); const n = document.getElementById('bus'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
     document.getElementById('nuevo').onclick = () => formCliente();

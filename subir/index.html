@@ -25,7 +25,7 @@
   .photo b{color:var(--tx);font-size:16px}
   #pm{height:250px;border-radius:14px;overflow:hidden;border:1px solid var(--line);margin-top:12px}
   .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
-  .seg button{background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:11px 6px;font-weight:600}
+  .seg button{background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:16px 6px;font-weight:700;font-size:17px}
   .seg button.on{background:rgba(255,140,66,.16);border-color:var(--or);color:var(--or)}
   .stars{display:flex;gap:6px}
   .stars button{flex:1;background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:8px 0;font-size:24px;line-height:1;color:#555}
@@ -42,7 +42,7 @@
   <header><span class="chip or">Registro de tiendas</span></header>
   <div id="form">
     <h1>Registrar una tienda</h1>
-    <p class="sub">Gracias por ayudarnos a construir. Sube la foto de la fachada, marca la ubicación y completa los datos.</p>
+    <p class="sub">Gracias por ayudarnos a construir. Sube la foto de la fachada, marca la ubicación y responde dos preguntas.</p>
 
     <div class="step" id="s1"><h2><i>1</i>Foto de la fachada</h2>
       <label class="photo" id="ph"><input type="file" id="file" accept="image/*" capture="environment" hidden>
@@ -55,19 +55,11 @@
       <p class="hint" id="lh">Si estás en la tienda, pulsa el botón. También puedes tocar el mapa para mover el punto.</p>
     </div>
 
-    <div class="step" id="s3"><h2><i>3</i>Datos de la tienda</h2>
-      <label class="f" style="margin-top:0">Nombre del negocio</label><input class="in" id="nom" maxlength="120" placeholder="Ej.: Minimarket La Esquina" autocomplete="off">
-      <label class="f">Tipo de negocio</label>
-      <select class="in" id="tipo"><option>Tienda de barrio</option><option>Minimarket</option><option>Gimnasio</option><option>Cafetería / kiosco</option><option>Universidad / colegio</option><option>Oficina</option><option>Farmacia</option><option>Otro</option></select>
-      <label class="f">¿Qué tan buena es la tienda? <span id="stl" style="text-transform:none;letter-spacing:0;color:var(--or)"></span></label>
-      <div class="stars" id="stars">
-        <button type="button" data-v="1">★</button><button type="button" data-v="2">★</button><button type="button" data-v="3">★</button><button type="button" data-v="4">★</button><button type="button" data-v="5">★</button></div>
-      <label class="f">Movimiento de gente</label>
-      <div class="seg" id="mov"><button type="button" data-v="bajo">Bajo</button><button type="button" data-v="medio">Medio</button><button type="button" data-v="alto">Alto</button></div>
-      <label class="f">¿Vende snacks o golosinas?</label>
-      <div class="seg" id="vs"><button type="button" data-v="si">Sí</button><button type="button" data-v="no">No</button><button type="button" data-v="no_se">No sé</button></div>
-      <label class="f">Comentario (opcional)</label>
-      <textarea class="in" id="com" rows="2" maxlength="500" placeholder="Ej.: queda junto a un colegio, abre desde las 6am"></textarea>
+    <div class="step" id="s3"><h2><i>3</i>Responde</h2>
+      <label class="f" style="margin-top:0">¿Vende frutos secos?</label>
+      <div class="seg" id="fs"><button type="button" data-v="si">Sí</button><button type="button" data-v="no">No</button></div>
+      <label class="f">¿Vende snacks para mascotas?</label>
+      <div class="seg" id="ms"><button type="button" data-v="si">Sí</button><button type="button" data-v="no">No</button></div>
       <input class="hp" id="web" tabindex="-1" autocomplete="off" aria-hidden="true">
     </div>
 

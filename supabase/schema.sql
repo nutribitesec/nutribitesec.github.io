@@ -27,6 +27,8 @@ alter table nutribites.clientes add column if not exists estrellas int check (es
 alter table nutribites.clientes add column if not exists movimiento text check (movimiento in ('bajo','medio','alto'));
 alter table nutribites.clientes add column if not exists vende_snacks text check (vende_snacks in ('si','no','no_se'));
 alter table nutribites.clientes add column if not exists foto_path text;
+alter table nutribites.clientes add column if not exists vende_frutos_secos text check (vende_frutos_secos in ('si','no'));
+alter table nutribites.clientes add column if not exists vende_mascotas text check (vende_mascotas in ('si','no'));
 
 create table if not exists nutribites.productos (
   id uuid primary key default gen_random_uuid(),
@@ -153,14 +155,16 @@ end $$;
 -- ─── Tiendas propuestas por colaboradores externos (link público /subir/) ───
 create table if not exists nutribites.propuestas (
   id uuid primary key default gen_random_uuid(),
-  nombre text not null check (char_length(nombre) between 2 and 120),
-  tipo text not null check (char_length(tipo) between 1 and 40),
+  nombre text check (nombre is null or char_length(nombre) between 2 and 120),
+  tipo text check (tipo is null or char_length(tipo) between 1 and 40),
   lat double precision not null check (lat between -5.1 and 1.5),
   lng double precision not null check (lng between -81.2 and -75.0),
   precision_m int check (precision_m is null or precision_m between 0 and 100000),
-  estrellas int not null check (estrellas between 1 and 5),
-  movimiento text not null check (movimiento in ('bajo','medio','alto')),
-  vende_snacks text not null check (vende_snacks in ('si','no','no_se')),
+  vende_frutos_secos text not null check (vende_frutos_secos in ('si','no')),
+  vende_mascotas text not null check (vende_mascotas in ('si','no')),
+  estrellas int check (estrellas between 1 and 5),
+  movimiento text check (movimiento in ('bajo','medio','alto')),
+  vende_snacks text check (vende_snacks in ('si','no','no_se')),
   comentario text check (comentario is null or char_length(comentario) <= 500),
   foto_path text not null check (foto_path like 'propuestas/%.jpg'),
   estado text not null default 'pendiente' check (estado in ('pendiente','aprobada','rechazada')),
@@ -169,6 +173,12 @@ create table if not exists nutribites.propuestas (
   creado_at timestamptz not null default now(),
   resuelto_at timestamptz
 );
+-- Si la tabla ya existía con el formulario anterior (nombre y calificación obligatorios):
+alter table nutribites.propuestas alter column nombre drop not null;
+alter table nutribites.propuestas alter column tipo drop not null;
+alter table nutribites.propuestas alter column estrellas drop not null;
+alter table nutribites.propuestas alter column movimiento drop not null;
+alter table nutribites.propuestas alter column vende_snacks drop not null;
 create index if not exists propuestas_estado on nutribites.propuestas(estado, creado_at desc);
 alter table nutribites.propuestas enable row level security;
 

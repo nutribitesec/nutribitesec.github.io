@@ -32,9 +32,11 @@ Notas con varios proyectos en el mismo Supabase:
 
 ## Red de tiendas propuestas (`/subir/`)
 1. Comparte el link `…/subir/` con los vendedores de otras empresas (se copia desde **Tiendas propuestas** en el panel del dueño).
-2. Cada envío pide: foto de la fachada, ubicación (GPS o punto en el mapa), nombre y tipo del negocio, calificación de 1 a 5 estrellas, movimiento de gente y si vende snacks.
-3. Los envíos llegan a **Tiendas propuestas** como pendientes, con aviso de posible duplicado si ya hay un cliente a menos de 60 m. Al **aprobar**, la tienda pasa a Clientes con su calificación; al rechazar queda registrado el motivo.
-4. En **Asignar rutas**, "Sugerir cercanos" puede limitarse a tiendas de 3★ o 4★ o más, para armar rutas de 30 puntos con tiendas efectivas.
+2. Cada envío pide solo: foto de la fachada, ubicación (GPS o punto en el mapa) y dos preguntas: ¿vende frutos secos? y ¿vende snacks para mascotas? No pide nombre ni datos de la empresa; el formulario es neutro (sin marca).
+3. Los envíos llegan a **Tiendas propuestas** como pendientes, con aviso de posible duplicado si ya hay un cliente a menos de 60 m. Al **aprobar**, la tienda pasa a Clientes (puedes ponerle nombre o dejarla sin nombre); al rechazar queda registrado el motivo.
+4. En **Asignar rutas**, "Sugerir cercanos" puede limitarse a las tiendas que venden frutos secos o snacks de mascotas, para armar rutas de 30 puntos con tiendas efectivas.
+
+Mapa: Leaflet con datos de OpenStreetMap, sin claves. El formulario público usa el mapa estándar de OpenStreetMap (claro, fácil de leer al aire libre); el panel usa un estilo oscuro de CARTO sobre los mismos datos.
 
 Protecciones del link abierto: solo permite insertar (nunca leer), todo queda pendiente, la foto es un JPG de hasta 3 MB, hay un campo trampa para robots y la base limita a 20 envíos por minuto y 300 por hora. Un link abierto no se puede blindar del todo: si ves abuso, el siguiente paso es un código por colaborador.
 Las fotos huérfanas (subidas sin enviar el formulario) conviene borrarlas de vez en cuando en Storage → `nb-fachadas`.

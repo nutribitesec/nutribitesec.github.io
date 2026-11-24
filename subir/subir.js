@@ -2,10 +2,10 @@
   const CFG = window.NB_CONFIG, $ = id => document.getElementById(id);
   await NB.data.init('subir');
   const t0 = Date.now();
-  let blob = null, pos = null, acc = null, est = 0, mov = null, vs = null, enviando = false;
+  let blob = null, pos = null, acc = null, fs = null, ms = null, enviando = false;
 
   /* mapa */
-  const map = NB.mapa('pm', { z: 13, zoom: true });
+  const map = NB.mapa('pm', { z: 13, zoom: true, claro: true });
   let mk = null;
   function poner(lat, lng, precision) {
     pos = [+lat.toFixed(6), +lng.toFixed(6)]; acc = precision == null ? null : Math.round(precision);
@@ -46,27 +46,22 @@
   };
   $('file').onchange = onFoto;
 
-  /* calificación */
-  const pick = (box, set) => document.querySelectorAll('#' + box + ' button').forEach(b => b.onclick = () => { document.querySelectorAll('#' + box + ' button').forEach(x => x.classList.toggle('on', x === b)); set(b.dataset.v); });
-  pick('mov', v => mov = v); pick('vs', v => vs = v);
-  const TXT = ['', 'Poco recomendable', 'Regular', 'Buena', 'Muy buena', 'Excelente'];
-  document.querySelectorAll('#stars button').forEach(b => b.onclick = () => { est = +b.dataset.v; document.querySelectorAll('#stars button').forEach(x => x.classList.toggle('on', +x.dataset.v <= est)); $('stl').textContent = '· ' + TXT[est]; });
+  /* preguntas */
+  const pick = (box, set) => document.querySelectorAll('#' + box + ' button').forEach(b => b.onclick = () => { document.querySelectorAll('#' + box + ' button').forEach(x => x.classList.toggle('on', x === b)); set(b.dataset.v); $('s3').classList.toggle('ok', !!(fs && ms)); });
+  pick('fs', v => fs = v); pick('ms', v => ms = v);
 
   /* enviar */
   $('go').onclick = async () => {
     if (enviando) return;
-    const nombre = $('nom').value.trim();
     if (!blob) return NB.toast('Falta la foto de la fachada', 'bad');
     if (!pos) return NB.toast('Falta marcar la ubicación', 'bad');
     if (pos[0] < -5.1 || pos[0] > 1.5 || pos[1] < -81.2 || pos[1] > -75) return NB.toast('La ubicación está fuera de Ecuador. Revisa el punto.', 'bad');
-    if (nombre.length < 2) return NB.toast('Escribe el nombre del negocio', 'bad');
-    if (!est) return NB.toast('Califica la tienda con las estrellas', 'bad');
-    if (!mov) return NB.toast('Indica el movimiento de gente', 'bad');
-    if (!vs) return NB.toast('Indica si vende snacks o parecidos', 'bad');
+    if (!fs) return NB.toast('Responde si vende frutos secos', 'bad');
+    if (!ms) return NB.toast('Responde si vende snacks para mascotas', 'bad');
     if ($('web').value || Date.now() - t0 < 8000) { $('form').hidden = true; $('done').hidden = false; return; }   // robots: se descarta en silencio
     enviando = true; const b = $('go'); b.disabled = true; b.textContent = 'Enviando…';
     try {
-      await NB.data.enviarPropuesta({ nombre, tipo: $('tipo').value, lat: pos[0], lng: pos[1], precision_m: acc, estrellas: est, movimiento: mov, vende_snacks: vs, comentario: $('com').value.trim() || null }, blob);
+      await NB.data.enviarPropuesta({ lat: pos[0], lng: pos[1], precision_m: acc, vende_frutos_secos: fs, vende_mascotas: ms }, blob);
       $('form').hidden = true; $('done').hidden = false; window.scrollTo(0, 0);
     } catch (err) {
       console.error(err); NB.toast('No se pudo enviar. Revisa tu conexión e intenta de nuevo.', 'bad');
