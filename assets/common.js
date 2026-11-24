@@ -42,15 +42,13 @@
   };
   NB.largoRuta = pts => pts.reduce((s, p, i) => s + (i ? NB.dist([pts[i - 1].lat, pts[i - 1].lng], [p.lat, p.lng]) : 0), 0);
 
-  // Mapa base oscuro (OpenStreetMap vía CARTO)
+  // Mapa base (OpenStreetMap)
   NB.mapa = function (el, opts = {}) {
     const m = L.map(el, { zoomControl: opts.zoom !== false, attributionControl: true }).setView(opts.centro || CFG.CENTRO, opts.z || 13);
-    if (opts.claro) L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(m);
-    else L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19, subdomains: 'abcd',
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    // OpenStreetMap estándar (sin claves). En los paneles se oscurece con un filtro CSS (clase nb-dark); en el formulario público va claro.
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, className: opts.claro ? '' : 'nb-dark',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(m);
     return m;
   };

@@ -23,14 +23,15 @@
     check: sv('<path d="M5 12l5 5 9-10"/>'), warn: sv('<path d="M12 4l9 16H3zM12 10v4M12 17h0"/>'), chart: sv('<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'),
     inbox: sv('<path d="M4 13l3-8h10l3 8v6H4zM4 13h5l1 2h4l1-2h5"/>')
   };
-  const NAV = [['resumen', 'Panel', 'grid'], ['rutas', 'Asignar rutas', 'route'], ['ventas', 'Ventas', 'dollar'], ['propuestas', 'Tiendas propuestas', 'inbox'], ['clientes', 'Clientes', 'store'], ['productos', 'Productos', 'box']];
+  const NAV = [['resumen', 'Panel', 'grid'], ['rutas', 'Asignar rutas', 'route'], ['ventas', 'Ventas', 'dollar'], ['propuestas', 'Propuestas', 'inbox'], ['clientes', 'Clientes', 'store'], ['productos', 'Productos', 'box']];
   root.innerHTML = `<div id="app">
     <nav>
+      <div class="logo">NUTRI<b>BITES</b><small>PANEL DEL DUEÑO</small></div>
       <div class="usr"><span class="avatar" style="--c:${user.color || '#FF8C42'}">${NB.iniciales(user.nombre)}</span><div><b>${esc(user.nombre)}</b><small>Administrador</small></div><button class="bell" id="bell" title="Alertas">${I.bell}<i id="bellN"></i></button></div>
       <div class="srch">${I.search}<input id="q" placeholder="Buscar cliente…" autocomplete="off"><div class="qr" id="qr"></div></div>
       <div class="inbox"><h2>Alertas <span class="chip or" id="alN">0</span></h2><small id="alS">Todo en orden</small></div>
       ${NAV.map(n => `<a class="t" data-v="${n[0]}">${I[n[2]]}${n[1]}${n[0] === 'propuestas' ? '<i class="nb" id="pBadge"></i>' : ''}</a>`).join('')}
-      <div class="sp"></div>
+      <div class="sp"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="77.0" cy="50.0" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="69.1" cy="69.1" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="50.0" cy="77.0" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="30.9" cy="69.1" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="23.0" cy="50.0" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="30.9" cy="30.9" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="50.0" cy="23.0" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="69.1" cy="30.9" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="50" cy="50" r="15" fill="#EF4B2B" stroke="#161312" stroke-width="3"/><path d="M43 48 q2 -3 4 0 M53 48 q2 -3 4 0 M43 55 q7 7 14 0" fill="none" stroke="#161312" stroke-width="2.5" stroke-linecap="round"/></svg></div>
       ${NB.data.demo ? `<a class="t" id="rst">${I.route}Reiniciar demo</a>` : ''}
       <a class="t" id="out">${I.out}Cerrar sesión</a>
     </nav><main id="main"></main></div>`;
@@ -117,7 +118,7 @@
     main.innerHTML = `<div class="dash">
       <section class="mapp"><div id="map"></div>
         <div class="ov tl"><div class="tt"><h1>Mapa</h1><p id="msub">${hoy ? 'Ambato · ubicación en tiempo real' : 'Resultado del ' + fecha}</p></div>
-          <div class="lg"><span><i class="dot" style="--c:var(--gr)"></i>Visitado con pedido</span><span><i class="dot" style="--c:var(--rd)"></i>No compró</span><span><i class="dot" style="--c:var(--or)"></i>Pendiente / siguiente</span><span><i class="dot" style="--c:#555"></i>Sin asignar hoy</span></div></div>
+          <div class="lg"><span><i class="dot" style="--c:var(--gr)"></i>Visitado con pedido</span><span><i class="dot" style="--c:var(--rd)"></i>No compró</span><span><i class="dot" style="--c:var(--or)"></i>Pendiente / siguiente</span><span><i class="dot" style="--c:#b8ab96"></i>Sin asignar hoy</span></div></div>
         <div class="ov tr"><input class="in" type="date" id="fecha" value="${fecha}"><button class="rb" id="flt" title="Filtrar vendedores">${I.filt}</button><div class="menu" id="fm" hidden></div></div>
         <div class="ov sc" id="sc" hidden></div>
         <div class="ov br"><button class="rb" id="zi">${I.plus}</button><button class="rb" id="zo">${I.minus}</button><button class="rb" id="lc" title="Ver todo">${I.loc}</button></div>
@@ -151,7 +152,7 @@
     // mapa
     layer.clearLayers(); Object.keys(marcadores).forEach(k => delete marcadores[k]);
     const asig = new Set(D.rutas.flatMap(paradasDe).map(p => p.cliente_id)), all = [];
-    D.clientes.filter(c => !asig.has(c.id)).forEach(c => marcadores[c.id] = L.circleMarker([c.lat, c.lng], { radius: 4, color: '#555', weight: 1, fillColor: '#444', fillOpacity: .9 }).bindPopup(`<b>${esc(c.nombre)}</b><br><span style="color:var(--mu)">Sin ruta asignada hoy</span>`).addTo(layer));
+    D.clientes.filter(c => !asig.has(c.id)).forEach(c => marcadores[c.id] = L.circleMarker([c.lat, c.lng], { radius: 4, color: '#5a4d40', weight: 1.5, fillColor: '#b8ab96', fillOpacity: .95 }).bindPopup(`<b>${esc(c.nombre)}</b><br><span style="color:var(--mu)">Sin ruta asignada hoy</span>`).addTo(layer));
     D.rutas.forEach(r => {
       if (ocultos.has(r.vendedor_id)) return;
       const v = vend(r.vendedor_id), ps = paradasDe(r), dim = focoV && focoV !== r.vendedor_id;
@@ -224,7 +225,7 @@
           <div style="width:100%"><b style="font-size:16px">${esc(nombreDe(p))}</b>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${chipSN('Frutos secos', p.vende_frutos_secos)}${chipSN('Snacks de mascotas', p.vende_mascotas)}</div>
             <small style="display:block;color:var(--mu)">${new Date(p.creado_at).toLocaleString('es-EC', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</small>
-            ${p.motivo ? `<small style="display:block;margin-top:4px;color:#ff7a7e">Rechazada: ${esc(p.motivo)}</small>` : ''}
+            ${p.motivo ? `<small style="display:block;margin-top:4px;color:var(--rd)">Rechazada: ${esc(p.motivo)}</small>` : ''}
             ${dup ? `<span class="chip" style="margin-top:6px;background:rgba(255,200,61,.15);color:var(--ye)">⚠ Posible duplicado: ${esc(dup.c.nombre)} (${NB.km(dup.d)})</span>` : ''}</div>
           ${p.estado === 'pendiente' ? `<div style="display:flex;gap:8px;width:100%"><button class="btn ok sm" style="flex:1" data-ap="${p.id}">Aprobar</button><button class="btn bad sm" style="flex:1" data-rj="${p.id}">Rechazar</button></div>` : ''}</div>`;
       }).join('') || `<div class="empty">No hay tiendas ${pTab === 'pendiente' ? 'pendientes' : pTab === 'aprobada' ? 'aprobadas' : 'rechazadas'}.</div>`}</div></div><div class="mapbox" id="map"></div></div>`;
@@ -232,7 +233,7 @@
     document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { pTab = b.dataset.t; destroyMap(); propuestas(); });
     // mapa: clientes existentes (gris) y propuestas del estado elegido
     map = NB.mapa('map', { z: 13 }); const g = L.layerGroup().addTo(map), pts = []; pMarks = {};
-    D.clientes.forEach(c => L.circleMarker([c.lat, c.lng], { radius: 4, color: '#555', weight: 1, fillColor: '#444', fillOpacity: .9 }).bindTooltip(esc(c.nombre) + ' (cliente)').addTo(g));
+    D.clientes.forEach(c => L.circleMarker([c.lat, c.lng], { radius: 4, color: '#5a4d40', weight: 1.5, fillColor: '#b8ab96', fillOpacity: .95 }).bindTooltip(esc(c.nombre) + ' (cliente)').addTo(g));
     lst.forEach(p => { pts.push([p.lat, p.lng]); pMarks[p.id] = L.marker([p.lat, p.lng], { icon: NB.pin(p.vende_frutos_secos === 'si' ? '✓' : '•', p.estado === 'aprobada' ? 'done' : p.estado === 'rechazada' ? 'skip' : 'next', '#FF8C42'), zIndexOffset: 800 }).bindPopup(`<b>${esc(nombreDe(p))}</b><br>Frutos secos: ${sn(p.vende_frutos_secos)}<br>Snacks de mascotas: ${sn(p.vende_mascotas)}`).addTo(g); pMarks[p.id].on('click', () => { const el = document.querySelector(`[data-p="${p.id}"]`); el && el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }); });
     if (pts.length) map.fitBounds(pts, { padding: [50, 50], maxZoom: 16, animate: false }); else map.setView(CFG.CENTRO, 13);
     document.querySelectorAll('[data-z]').forEach(i => i.onclick = () => { const p = P.find(x => x.id === i.dataset.z); map.flyTo([p.lat, p.lng], 18, { duration: .7 }); setTimeout(() => pMarks[p.id] && pMarks[p.id].openPopup(), 750); });

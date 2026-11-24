@@ -36,7 +36,7 @@ Notas con varios proyectos en el mismo Supabase:
 3. Los envíos llegan a **Tiendas propuestas** como pendientes, con aviso de posible duplicado si ya hay un cliente a menos de 60 m. Al **aprobar**, la tienda pasa a Clientes (puedes ponerle nombre o dejarla sin nombre); al rechazar queda registrado el motivo.
 4. En **Asignar rutas**, "Sugerir cercanos" puede limitarse a las tiendas que venden frutos secos o snacks de mascotas, para armar rutas de 30 puntos con tiendas efectivas.
 
-Mapa: Leaflet con datos de OpenStreetMap, sin claves. El formulario público usa el mapa estándar de OpenStreetMap (claro, fácil de leer al aire libre); el panel usa un estilo oscuro de CARTO sobre los mismos datos.
+Mapa: Leaflet con datos de OpenStreetMap, sin claves. El formulario público usa el mapa estándar de OpenStreetMap (claro, fácil de leer al aire libre); los paneles usan el mismo mapa con un filtro oscuro.
 
 Protecciones del link abierto: solo permite insertar (nunca leer), todo queda pendiente, la foto es un JPG de hasta 3 MB, hay un campo trampa para robots y la base limita a 20 envíos por minuto y 300 por hora. Un link abierto no se puede blindar del todo: si ves abuso, el siguiente paso es un código por colaborador.
 Las fotos huérfanas (subidas sin enviar el formulario) conviene borrarlas de vez en cuando en Storage → `nb-fachadas`.
