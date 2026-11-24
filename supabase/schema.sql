@@ -23,6 +23,11 @@ create table if not exists nutribites.clientes (
   creado_at timestamptz not null default now()
 );
 
+alter table nutribites.clientes add column if not exists estrellas int check (estrellas between 1 and 5);
+alter table nutribites.clientes add column if not exists movimiento text check (movimiento in ('bajo','medio','alto'));
+alter table nutribites.clientes add column if not exists vende_snacks text check (vende_snacks in ('si','no','no_se'));
+alter table nutribites.clientes add column if not exists foto_path text;
+
 create table if not exists nutribites.productos (
   id uuid primary key default gen_random_uuid(),
   nombre text not null,
@@ -143,6 +148,67 @@ do $$ begin
   begin alter publication supabase_realtime add table nutribites.rutas;        exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table nutribites.ruta_paradas; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table nutribites.pedidos;      exception when duplicate_object then null; end;
+end $$;
+
+-- ─── Tiendas propuestas por colaboradores externos (link público /subir/) ───
+create table if not exists nutribites.propuestas (
+  id uuid primary key default gen_random_uuid(),
+  nombre text not null check (char_length(nombre) between 2 and 120),
+  tipo text not null check (char_length(tipo) between 1 and 40),
+  lat double precision not null check (lat between -5.1 and 1.5),
+  lng double precision not null check (lng between -81.2 and -75.0),
+  precision_m int check (precision_m is null or precision_m between 0 and 100000),
+  estrellas int not null check (estrellas between 1 and 5),
+  movimiento text not null check (movimiento in ('bajo','medio','alto')),
+  vende_snacks text not null check (vende_snacks in ('si','no','no_se')),
+  comentario text check (comentario is null or char_length(comentario) <= 500),
+  foto_path text not null check (foto_path like 'propuestas/%.jpg'),
+  estado text not null default 'pendiente' check (estado in ('pendiente','aprobada','rechazada')),
+  motivo text,
+  cliente_id uuid references nutribites.clientes(id) on delete set null,
+  creado_at timestamptz not null default now(),
+  resuelto_at timestamptz
+);
+create index if not exists propuestas_estado on nutribites.propuestas(estado, creado_at desc);
+alter table nutribites.propuestas enable row level security;
+
+-- Freno anti-spam del link abierto: máximo 20 envíos por minuto y 300 por hora en total.
+create or replace function nutribites.limitar_propuestas() returns trigger
+language plpgsql security definer set search_path = nutribites as
+$$ begin
+  if (select count(*) from nutribites.propuestas where creado_at > now() - interval '1 minute') >= 20
+     or (select count(*) from nutribites.propuestas where creado_at > now() - interval '1 hour') >= 300 then
+    raise exception 'Demasiados envios, intenta mas tarde' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+drop trigger if exists propuestas_limite on nutribites.propuestas;
+create trigger propuestas_limite before insert on nutribites.propuestas for each row execute function nutribites.limitar_propuestas();
+
+-- Cualquiera con el link puede ENVIAR (solo insertar, siempre como pendiente). Solo el admin lee y resuelve.
+drop policy if exists p_prop_ins on nutribites.propuestas;
+create policy p_prop_ins on nutribites.propuestas for insert to anon, authenticated
+  with check (estado = 'pendiente' and cliente_id is null and motivo is null and resuelto_at is null);
+drop policy if exists p_prop_adm on nutribites.propuestas;
+create policy p_prop_adm on nutribites.propuestas for all to authenticated using (nutribites.es_admin()) with check (nutribites.es_admin());
+grant usage on schema nutribites to anon;
+grant insert on nutribites.propuestas to anon;
+grant select, insert, update, delete on nutribites.propuestas to authenticated;
+grant all on nutribites.propuestas to service_role;
+
+-- Fotos de fachadas: bucket privado; cualquiera sube (solo JPG hasta 3 MB), solo el admin ve.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('nb-fachadas', 'nb-fachadas', false, 3145728, array['image/jpeg'])
+on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+drop policy if exists nb_fachadas_ins on storage.objects;
+create policy nb_fachadas_ins on storage.objects for insert to anon, authenticated
+  with check (bucket_id = 'nb-fachadas' and (storage.foldername(name))[1] = 'propuestas');
+drop policy if exists nb_fachadas_sel on storage.objects;
+create policy nb_fachadas_sel on storage.objects for select to authenticated
+  using (bucket_id = 'nb-fachadas' and nutribites.es_admin());
+
+do $$ begin
+  begin alter publication supabase_realtime add table nutribites.propuestas; exception when duplicate_object then null; end;
 end $$;
 
 -- Productos iniciales (edita los precios en el panel)

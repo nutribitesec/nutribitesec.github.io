@@ -9,7 +9,7 @@
   let scope = 'admin', sb = null;
 
   /* ───────────────────────── DEMO ───────────────────────── */
-  const KEY = 'nb_demo_v3';
+  const KEY = 'nb_demo_v4';
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
   function seed() {
@@ -54,7 +54,11 @@
       const u = ord[Math.max(0, hechas - 1)];
       Object.assign(rutas[rutas.length - 1], { ultima_lat: u.lat, ultima_lng: u.lng, ultima_at: new Date().toISOString() });
     });
-    return { vendedores, clientes, productos, rutas, paradas, pedidos };
+    const ph = t => 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400"><rect width="640" height="400" fill="#222"/><rect x="60" y="140" width="520" height="200" fill="#333"/><rect x="60" y="90" width="520" height="60" fill="#FF8C42"/><text x="320" y="132" font-family="sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#111">${t}</text><rect x="270" y="210" width="100" height="130" fill="#111"/><text x="320" y="375" font-family="sans-serif" font-size="16" text-anchor="middle" fill="#888">foto de ejemplo</text></svg>`);
+    const propuestas = [['Minimarket El Vecino', 'Minimarket', 4, 'alto', 'si', 'Queda junto a un colegio.'], ['Gimnasio Fuerza Andina', 'Gimnasio', 5, 'alto', 'si', null], ['Tienda Doña Rosa', 'Tienda de barrio', 2, 'bajo', 'no', 'Poco movimiento por la tarde.']].map((x, i) => ({
+      id: 'q' + (i + 1), nombre: x[0], tipo: x[1], estrellas: x[2], movimiento: x[3], vende_snacks: x[4], comentario: x[5], lat: +(c0 + (rnd() - .5) * .06).toFixed(6), lng: +(c1 + (rnd() - .5) * .08).toFixed(6), precision_m: 12,
+      estado: 'pendiente', motivo: null, cliente_id: null, creado_at: new Date(Date.now() - (i + 1) * 3600000).toISOString(), resuelto_at: null, foto_url: ph(x[0]) }));
+    return { vendedores, clientes, productos, rutas, paradas, pedidos, propuestas };
   }
   const load = () => { try { const j = JSON.parse(localStorage.getItem(KEY)); if (j && j.clientes) return j; } catch (e) { } const d = seed(); save(d, true); return d; };
   const save = (d, quiet) => { localStorage.setItem(KEY, JSON.stringify(d)); if (!quiet) emit(); };
@@ -86,6 +90,19 @@
     async posicion(ruta_id, lat, lng) { const d = load(); Object.assign(d.rutas.find(r => r.id === ruta_id), { ultima_lat: lat, ultima_lng: lng, ultima_at: new Date().toISOString() }); save(d); },
     async guardarCliente(c) { const d = load(); if (c.id) Object.assign(d.clientes.find(x => x.id === c.id), c); else d.clientes.push({ ...c, id: 'c' + uid() }); save(d); },
     async guardarProducto(p) { const d = load(); if (p.id) Object.assign(d.productos.find(x => x.id === p.id), p); else d.productos.push({ activo: true, ...p, id: 'p' + uid() }); save(d); },
+    // Propuestas de tiendas enviadas por colaboradores externos (link público /subir/)
+    async enviarPropuesta(p, blob) {
+      const foto_url = await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(blob); });
+      const d = load(); (d.propuestas ||= []).push({ ...p, id: 'q' + uid(), estado: 'pendiente', motivo: null, cliente_id: null, creado_at: new Date().toISOString(), resuelto_at: null, foto_url }); save(d);
+    },
+    async propuestas() { return (load().propuestas || []).slice().sort((a, b) => b.creado_at.localeCompare(a.creado_at)); },
+    async resolverPropuesta(id, { accion, cliente, motivo }) {
+      const d = load(), pr = (d.propuestas || []).find(x => x.id === id); if (!pr) return;
+      if (accion === 'aprobar') {
+        const c = { ...cliente, id: 'c' + uid() }; d.clientes.push(c); pr.estado = 'aprobada'; pr.cliente_id = c.id;
+      } else { pr.estado = 'rechazada'; pr.motivo = motivo || null; }
+      pr.resuelto_at = new Date().toISOString(); save(d);
+    },
     async reiniciar() { localStorage.removeItem(KEY); load(); emit(); }
   };
 
@@ -118,7 +135,29 @@
     async crearPedido(p) { await q(sb.from('pedidos').insert(p)); },
     async posicion(ruta_id, lat, lng) { await q(sb.from('rutas').update({ ultima_lat: lat, ultima_lng: lng, ultima_at: new Date().toISOString() }).eq('id', ruta_id)); },
     async guardarCliente(c) { const { id, ...r } = c; await q(id ? sb.from('clientes').update(r).eq('id', id) : sb.from('clientes').insert(r)); },
-    async guardarProducto(p) { const { id, ...r } = p; await q(id ? sb.from('productos').update(r).eq('id', id) : sb.from('productos').insert(r)); }
+    async guardarProducto(p) { const { id, ...r } = p; await q(id ? sb.from('productos').update(r).eq('id', id) : sb.from('productos').insert(r)); },
+    // Propuestas de tiendas: cualquiera con el link sube (solo inserta); el dueño revisa
+    async enviarPropuesta(p, blob) {
+      const id = (crypto.randomUUID ? crypto.randomUUID() : uid()), path = 'propuestas/' + id + '.jpg';
+      const up = await sb.storage.from('nb-fachadas').upload(path, blob, { contentType: 'image/jpeg', upsert: false }); if (up.error) throw up.error;
+      const { error } = await sb.from('propuestas').insert({ id, ...p, foto_path: path }); if (error) throw error;
+    },
+    async propuestas() {
+      const rows = await q(sb.from('propuestas').select('*').order('creado_at', { ascending: false }).limit(500));
+      const paths = rows.map(r => r.foto_path).filter(Boolean);
+      if (paths.length) {
+        const { data } = await sb.storage.from('nb-fachadas').createSignedUrls(paths, 3600);
+        const m = {}; (data || []).forEach(x => { if (x.path) m[x.path] = x.signedUrl; });
+        rows.forEach(r => r.foto_url = m[r.foto_path] || null);
+      }
+      return rows;
+    },
+    async resolverPropuesta(id, { accion, cliente, motivo }) {
+      if (accion === 'aprobar') {
+        const c = await q(sb.from('clientes').insert(cliente).select('id').single());
+        await q(sb.from('propuestas').update({ estado: 'aprobada', cliente_id: c.id, resuelto_at: new Date().toISOString() }).eq('id', id));
+      } else await q(sb.from('propuestas').update({ estado: 'rechazada', motivo: motivo || null, resuelto_at: new Date().toISOString() }).eq('id', id));
+    }
   };
 
   function loadScript(src) { return new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); }
@@ -130,11 +169,11 @@
       if (!DEMO) {
         await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js');
         sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, { db: { schema: CFG.SCHEMA || 'nutribites' } });
-        sb.channel('nb-live').on('postgres_changes', { event: '*', schema: CFG.SCHEMA || 'nutribites' }, emit).subscribe();
+        if (sc !== 'subir') sb.channel('nb-live').on('postgres_changes', { event: '*', schema: CFG.SCHEMA || 'nutribites' }, emit).subscribe();
       }
     },
     suscribir(f) { listeners.add(f); return () => listeners.delete(f); }
   };
-  ['session', 'login', 'loginDemo', 'usuariosDemo', 'logout', 'dia', 'crearRuta', 'actualizarParada', 'crearPedido', 'posicion', 'guardarCliente', 'guardarProducto', 'reiniciar']
+  ['session', 'login', 'loginDemo', 'usuariosDemo', 'logout', 'dia', 'crearRuta', 'actualizarParada', 'crearPedido', 'posicion', 'guardarCliente', 'guardarProducto', 'enviarPropuesta', 'propuestas', 'resolverPropuesta', 'reiniciar']
     .forEach(k => { NB.data[k] = (...a) => { const impl = DEMO ? demo : cloud; return impl[k] ? impl[k](...a) : Promise.resolve(); }; });
 })();

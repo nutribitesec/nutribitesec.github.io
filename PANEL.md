@@ -2,7 +2,8 @@
 
 | Panel | Dirección | Para quién |
 |---|---|---|
-| Dueño / administración | `/admin/` | Ver en vivo ruta, visitas, ventas y equipo; asignar rutas de hasta 20 puntos; gestionar clientes y productos |
+| Dueño / administración | `/admin/` | Ver en vivo ruta, visitas, ventas y equipo; asignar rutas de hasta 30 puntos, revisar las tiendas propuestas; gestionar clientes y productos |
+| Colaboradores externos | `/subir/` | Link público (sin clave) para subir la foto de la fachada, la ubicación y la calificación de una tienda. Quedan **pendientes** hasta que el dueño las apruebe |
 | Vendedor | `/vendedor/` | Celular: ver su ruta del día en el mapa, marcar llegada con GPS, tomar pedido o registrar por qué no compró |
 
 Todo es HTML/JS estático (funciona en GitHub Pages). Mapa: OpenStreetMap + Leaflet.
@@ -28,3 +29,12 @@ Notas con varios proyectos en el mismo Supabase:
 1. El dueño abre **Asignar rutas**, elige vendedor, mueve el mapa a la zona y pulsa *Sugerir cercanos* (o toca puntos a mano), *Optimizar orden* y *Asignar ruta*.
 2. El vendedor abre `/vendedor/` en su celular (puede añadirlo a la pantalla de inicio) y sigue la ruta parada por parada.
 3. El dueño ve en **Resumen en vivo** cada llegada, pedido y no-compra al instante, y la posición del vendedor.
+
+## Red de tiendas propuestas (`/subir/`)
+1. Comparte el link `…/subir/` con los vendedores de otras empresas (se copia desde **Tiendas propuestas** en el panel del dueño).
+2. Cada envío pide: foto de la fachada, ubicación (GPS o punto en el mapa), nombre y tipo del negocio, calificación de 1 a 5 estrellas, movimiento de gente y si vende snacks.
+3. Los envíos llegan a **Tiendas propuestas** como pendientes, con aviso de posible duplicado si ya hay un cliente a menos de 60 m. Al **aprobar**, la tienda pasa a Clientes con su calificación; al rechazar queda registrado el motivo.
+4. En **Asignar rutas**, "Sugerir cercanos" puede limitarse a tiendas de 3★ o 4★ o más, para armar rutas de 30 puntos con tiendas efectivas.
+
+Protecciones del link abierto: solo permite insertar (nunca leer), todo queda pendiente, la foto es un JPG de hasta 3 MB, hay un campo trampa para robots y la base limita a 20 envíos por minuto y 300 por hora. Un link abierto no se puede blindar del todo: si ves abuso, el siguiente paso es un código por colaborador.
+Las fotos huérfanas (subidas sin enviar el formulario) conviene borrarlas de vez en cuando en Storage → `nb-fachadas`.
