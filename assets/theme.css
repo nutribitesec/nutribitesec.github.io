@@ -49,6 +49,7 @@ tr:hover td{background:#161616}
 
 /* Mapa */
 .leaflet-container{background:#0e0e0e;font-family:inherit}
+.nb-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.75)}
 .leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:#777!important;font-size:10px}
 .leaflet-control-attribution a{color:#999!important}
 .leaflet-bar a{background:var(--s2);color:var(--tx);border-color:var(--line)}
