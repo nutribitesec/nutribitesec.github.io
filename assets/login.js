@@ -10,6 +10,7 @@ NB.requireLogin = async function (rol, root, titulo) {
       <div class="logo">NUTRI<b>BITES</b></div>
       <p class="sub">${NB.esc(titulo)}</p>
       <span class="ribbon">${rol === 'admin' ? 'Acceso del dueño' : 'Acceso del vendedor'}</span>
+      ${NB.data.faltaSchema ? `<div class="demo-tag">Falta un paso en Supabase: agrega el schema <b>${NB.esc((window.NB_CONFIG||{}).SCHEMA || 'nutribites')}</b> en Settings → API → Exposed schemas.</div>` : ''}
       ${u && u.rol !== rol ? `<div class="demo-tag">Esta cuenta no tiene permiso para este panel.</div>` : ''}
       ${demo ? `<div class="demo-tag">Modo demo: datos de ejemplo guardados en este navegador. Elige un usuario.</div>
         ${usuarios.map(x => `<button class="userpick" data-id="${x.id}"><span class="avatar" style="--c:${x.color}">${NB.iniciales(x.nombre)}</span><span><b>${NB.esc(x.nombre)}</b><br><span style="color:var(--mu);font-size:12px">${x.rol === 'admin' ? 'Administrador' : 'Vendedor'}</span></span></button>`).join('')}`

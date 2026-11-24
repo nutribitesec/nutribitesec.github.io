@@ -169,6 +169,8 @@
       if (!DEMO) {
         await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js');
         sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, { db: { schema: CFG.SCHEMA || 'nutribites' } });
+        // Aviso claro si el schema aún no está expuesto en Supabase (Settings → API → Exposed schemas)
+        try { const pr = await sb.from('productos').select('id').limit(1); if (pr.error && /PGRST106|schema must be one of/i.test((pr.error.code || '') + ' ' + (pr.error.message || ''))) NB.data.faltaSchema = true; } catch (e) { }
         if (sc !== 'subir') sb.channel('nb-live').on('postgres_changes', { event: '*', schema: CFG.SCHEMA || 'nutribites' }, emit).subscribe();
       }
     },
