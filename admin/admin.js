@@ -31,7 +31,7 @@
       <div class="srch">${I.search}<input id="q" placeholder="Buscar cliente…" autocomplete="off"><div class="qr" id="qr"></div></div>
       <div class="inbox"><h2>Alertas <span class="chip or" id="alN">0</span></h2><small id="alS">Todo en orden</small></div>
       ${NAV.map(n => `<a class="t" data-v="${n[0]}">${I[n[2]]}${n[1]}${n[0] === 'propuestas' ? '<i class="nb" id="pBadge"></i>' : ''}</a>`).join('')}
-      <div class="sp"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="77.0" cy="50.0" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="69.1" cy="69.1" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="50.0" cy="77.0" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="30.9" cy="69.1" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="23.0" cy="50.0" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="30.9" cy="30.9" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="50.0" cy="23.0" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="69.1" cy="30.9" r="19" fill="#FFC93C" stroke="#161312" stroke-width="3"/><circle cx="50" cy="50" r="15" fill="#EF4B2B" stroke="#161312" stroke-width="3"/><path d="M43 48 q2 -3 4 0 M53 48 q2 -3 4 0 M43 55 q7 7 14 0" fill="none" stroke="#161312" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+      <div class="sp"></div>
       ${NB.data.demo ? `<a class="t" id="rst">${I.route}Reiniciar demo</a>` : ''}
       <a class="t" id="out">${I.out}Cerrar sesión</a>
     </nav><main id="main"></main></div>`;
