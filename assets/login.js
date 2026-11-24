@@ -16,7 +16,7 @@ NB.requireLogin = async function (rol, root, titulo) {
         ${usuarios.map(x => `<button class="userpick" data-id="${x.id}"><span class="avatar" style="--c:${x.color}">${NB.iniciales(x.nombre)}</span><span><b>${NB.esc(x.nombre)}</b><br><span style="color:var(--mu);font-size:12px">${x.rol === 'admin' ? 'Administrador' : 'Vendedor'}</span></span></button>`).join('')}`
       : `<form id="lf"><label class="f">Correo</label><input class="in" type="email" name="e" required autocomplete="username">
           <label class="f">Contraseña</label><input class="in" type="password" name="p" required autocomplete="current-password">
-          <p id="le" style="color:#ff7a7e;margin-top:10px;min-height:18px"></p>
+          <p id="le" style="color:var(--rd);margin-top:10px;min-height:18px"></p>
           <button class="btn pri block" style="margin-top:6px">Entrar</button></form>`}
     </div></div>`;
     root.querySelectorAll('.userpick').forEach(b => b.onclick = async () => { await NB.data.loginDemo(b.dataset.id); ok(await NB.data.session()); });

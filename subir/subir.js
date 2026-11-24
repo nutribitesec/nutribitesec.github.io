@@ -9,7 +9,7 @@
   let mk = null;
   function poner(lat, lng, precision) {
     pos = [+lat.toFixed(6), +lng.toFixed(6)]; acc = precision == null ? null : Math.round(precision);
-    if (mk) mk.setLatLng(pos); else { mk = L.marker(pos, { icon: NB.pin('•', '', '#ff2bd6'), draggable: true }).addTo(map); mk.on('dragend', () => { const p = mk.getLatLng(); poner(p.lat, p.lng, null); }); }
+    if (mk) mk.setLatLng(pos); else { mk = L.marker(pos, { icon: NB.pin('•', '', '#EF4B2B'), draggable: true }).addTo(map); mk.on('dragend', () => { const p = mk.getLatLng(); poner(p.lat, p.lng, null); }); }
     $('s2').classList.add('ok');
     $('lh').textContent = acc != null ? `Ubicación marcada (precisión aproximada de ${acc} m). Puedes mover el punto si hace falta.` : 'Ubicación marcada. Puedes mover el punto si hace falta.';
   }
