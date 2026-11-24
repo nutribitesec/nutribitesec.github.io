@@ -9,7 +9,7 @@
   let scope = 'admin', sb = null;
 
   /* ───────────────────────── DEMO ───────────────────────── */
-  const KEY = 'nb_demo_v4';
+  const KEY = 'nb_demo_v5';
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
   function seed() {
@@ -55,9 +55,9 @@
       Object.assign(rutas[rutas.length - 1], { ultima_lat: u.lat, ultima_lng: u.lng, ultima_at: new Date().toISOString() });
     });
     const ph = t => 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400"><rect width="640" height="400" fill="#222"/><rect x="60" y="140" width="520" height="200" fill="#333"/><rect x="60" y="90" width="520" height="60" fill="#FF8C42"/><text x="320" y="132" font-family="sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#111">${t}</text><rect x="270" y="210" width="100" height="130" fill="#111"/><text x="320" y="375" font-family="sans-serif" font-size="16" text-anchor="middle" fill="#888">foto de ejemplo</text></svg>`);
-    const propuestas = [['Minimarket El Vecino', 'Minimarket', 4, 'alto', 'si', 'Queda junto a un colegio.'], ['Gimnasio Fuerza Andina', 'Gimnasio', 5, 'alto', 'si', null], ['Tienda Doña Rosa', 'Tienda de barrio', 2, 'bajo', 'no', 'Poco movimiento por la tarde.']].map((x, i) => ({
-      id: 'q' + (i + 1), nombre: x[0], tipo: x[1], estrellas: x[2], movimiento: x[3], vende_snacks: x[4], comentario: x[5], lat: +(c0 + (rnd() - .5) * .06).toFixed(6), lng: +(c1 + (rnd() - .5) * .08).toFixed(6), precision_m: 12,
-      estado: 'pendiente', motivo: null, cliente_id: null, creado_at: new Date(Date.now() - (i + 1) * 3600000).toISOString(), resuelto_at: null, foto_url: ph(x[0]) }));
+    const propuestas = [[null, 'si', 'no'], ['Minimarket El Vecino', 'si', 'si'], [null, 'no', 'si']].map((x, i) => ({
+      id: 'q' + (i + 1), nombre: x[0], tipo: null, vende_frutos_secos: x[1], vende_mascotas: x[2], lat: +(c0 + (rnd() - .5) * .06).toFixed(6), lng: +(c1 + (rnd() - .5) * .08).toFixed(6), precision_m: 12,
+      estado: 'pendiente', motivo: null, cliente_id: null, creado_at: new Date(Date.now() - (i + 1) * 3600000).toISOString(), resuelto_at: null, foto_url: ph(x[0] || 'Tienda') }));
     return { vendedores, clientes, productos, rutas, paradas, pedidos, propuestas };
   }
   const load = () => { try { const j = JSON.parse(localStorage.getItem(KEY)); if (j && j.clientes) return j; } catch (e) { } const d = seed(); save(d, true); return d; };
