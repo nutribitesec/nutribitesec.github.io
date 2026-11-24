@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0B0B0B">
-<title>Nutribites · Registrar una tienda</title>
+<title>Registrar una tienda</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -39,10 +39,10 @@
 </head>
 <body>
 <div class="wrap" id="app">
-  <header><div class="logo">NUTRI<b>BITES</b></div><span class="chip or">Registro de tiendas</span></header>
+  <header><span class="chip or">Registro de tiendas</span></header>
   <div id="form">
-    <h1>Registra una tienda para nuestra ruta</h1>
-    <p class="sub">Toma una foto de la fachada, marca dónde está y cuéntanos qué tan buena es para vender snacks saludables. Toma menos de un minuto.</p>
+    <h1>Registrar una tienda</h1>
+    <p class="sub">Gracias por ayudarnos a construir. Sube la foto de la fachada, marca la ubicación y completa los datos.</p>
 
     <div class="step" id="s1"><h2><i>1</i>Foto de la fachada</h2>
       <label class="photo" id="ph"><input type="file" id="file" accept="image/*" capture="environment" hidden>
@@ -59,12 +59,12 @@
       <label class="f" style="margin-top:0">Nombre del negocio</label><input class="in" id="nom" maxlength="120" placeholder="Ej.: Minimarket La Esquina" autocomplete="off">
       <label class="f">Tipo de negocio</label>
       <select class="in" id="tipo"><option>Tienda de barrio</option><option>Minimarket</option><option>Gimnasio</option><option>Cafetería / kiosco</option><option>Universidad / colegio</option><option>Oficina</option><option>Farmacia</option><option>Otro</option></select>
-      <label class="f">¿Qué tan buena es para vender? <span id="stl" style="text-transform:none;letter-spacing:0;color:var(--or)"></span></label>
+      <label class="f">¿Qué tan buena es la tienda? <span id="stl" style="text-transform:none;letter-spacing:0;color:var(--or)"></span></label>
       <div class="stars" id="stars">
         <button type="button" data-v="1">★</button><button type="button" data-v="2">★</button><button type="button" data-v="3">★</button><button type="button" data-v="4">★</button><button type="button" data-v="5">★</button></div>
       <label class="f">Movimiento de gente</label>
       <div class="seg" id="mov"><button type="button" data-v="bajo">Bajo</button><button type="button" data-v="medio">Medio</button><button type="button" data-v="alto">Alto</button></div>
-      <label class="f">¿Vende snacks o productos parecidos?</label>
+      <label class="f">¿Vende snacks o golosinas?</label>
       <div class="seg" id="vs"><button type="button" data-v="si">Sí</button><button type="button" data-v="no">No</button><button type="button" data-v="no_se">No sé</button></div>
       <label class="f">Comentario (opcional)</label>
       <textarea class="in" id="com" rows="2" maxlength="500" placeholder="Ej.: queda junto a un colegio, abre desde las 6am"></textarea>
@@ -72,11 +72,11 @@
     </div>
 
     <button class="btn pri big block" id="go" type="button">Enviar tienda</button>
-    <p class="hint" style="text-align:center">Tu envío queda en revisión. Gracias por ayudarnos a armar la ruta.</p>
+    <p class="hint" style="text-align:center">Gracias por ayudarnos a construir.</p>
   </div>
   <div class="done" id="done" hidden>
-    <div class="big">✅</div><h1>¡Gracias!</h1>
-    <p class="sub">La tienda quedó registrada y la revisaremos pronto.</p>
+    <div class="big">✅</div><h1>¡Gracias por ayudarnos a construir!</h1>
+    <p class="sub">Tu envío quedó registrado.</p>
     <button class="btn pri big block" id="otra" type="button">Registrar otra tienda</button>
   </div>
 </div>
