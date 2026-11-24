@@ -60,7 +60,7 @@ tr:hover td{background:rgba(255,201,60,.22)}
 /* login */
 .login{background:var(--yel)}
 .login .box{background:var(--paper);border:3px solid var(--ink);border-radius:28px;box-shadow:8px 8px 0 var(--ink)}
-.login .logo{font-size:38px;-webkit-text-stroke:6px var(--ink)}
+.login .logo-img{width:240px}
 .login p.sub{color:var(--soft);font-weight:600}
 .ribbon{background:var(--red);color:#fff;border-top:3px solid var(--ink);border-bottom:3px solid var(--ink);font-family:var(--disp);font-weight:400;letter-spacing:1px}
 .userpick{background:#fff;border:2.5px solid var(--ink);box-shadow:0 3px 0 var(--ink)}
